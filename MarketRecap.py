@@ -1,5 +1,8 @@
-import requests
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
+import time
 
 class SiteListManager:
     def __init__(self, filename="SiteLists.txt"):
@@ -34,15 +37,17 @@ class SiteListManager:
 class WebScraper:
     def __init__(self, url):
         self.url = url
+        self.driver = None
         self.soup = None
 
     def open_website(self):
         try:
-            response = requests.get(self.url)
-            response.raise_for_status()
-            self.soup = BeautifulSoup(response.text, "html.parser")
+            self.driver = webdriver.Firefox()
+            self.driver.get(self.url)
+            html = self.driver.page_source
+            self.soup = BeautifulSoup(html, "html.parser")
             return True
-        except requests.RequestException:
+        except Exception:
             self.soup = None
             return False
 
@@ -61,13 +66,17 @@ class WebScraper:
             return self.soup.get_text()
         return ""
 
-    
+    def close(self):
+        if self.driver:
+            self.driver.quit()
+
 SiteListManager = SiteListManager()
+SiteListManager.clearAllSites()
 SiteListManager.addSite("https://www.marketwatch.com/markets")
+SiteListManager.addSite("https://google.com")
 
-WebScraper = WebScraper(SiteListManager.getSite(1))
-
+WebScraper = WebScraper(SiteListManager.getSite(2))
 if WebScraper.open_website():
     print("Title:", WebScraper.get_title())
-    print("Links:", WebScraper.get_all_links())
-    print("Text:", WebScraper.get_text())
+    #print("Links:", WebScraper.get_all_links())
+    print("Text Content:", WebScraper.get_text()[:200])
