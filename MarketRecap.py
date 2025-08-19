@@ -1,8 +1,10 @@
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.by import By
+import requests
 from bs4 import BeautifulSoup
 import time
+import pycurl
+from io import BytesIO
+import json
 
 class SiteListManager:
     def __init__(self, filename="SiteLists.txt"):
@@ -54,7 +56,7 @@ class WebScraper:
     def get_title(self):
         if self.soup:
             return self.soup.title.string if self.soup.title else None
-        return None
+        return None 
 
     def get_all_links(self):
         if self.soup:
@@ -70,13 +72,43 @@ class WebScraper:
         if self.driver:
             self.driver.quit()
 
+class PriceManager:
+    def __init__(self, api_key):
+        self.api_key = api_key
+
+    def get_data(self):
+        buffer = BytesIO()
+        curl = pycurl.Curl()
+        url = f"https://api.polygon.io/v3/reference/tickers?market=stocks&active=true&order=asc&limit=100&sort=ticker&apiKey={self.api_key}"
+        curl.setopt(pycurl.URL, url)
+        curl.setopt(pycurl.WRITEDATA, buffer)
+        curl.perform()
+        curl.close()
+        response = buffer.getvalue().decode('utf-8')
+        try:
+            data = json.loads(response)
+            return json.dumps(data, indent=4)
+        except Exception:
+            pass
+        return response
+
+
 SiteListManager = SiteListManager()
 SiteListManager.clearAllSites()
 SiteListManager.addSite("https://www.marketwatch.com/markets")
 SiteListManager.addSite("https://google.com")
 
-WebScraper = WebScraper(SiteListManager.getSite(2))
+polykey = '3xCm_W1ug8HuguFEtibvELIUHZz0OlCh'
+
+PriceManager = PriceManager(polykey)
+if PriceManager.get_data():
+    print("Price data retrieved successfully.")
+    print(PriceManager.get_data()) 
+
+'''
+WebScraper = WebScraper(SiteListManager.getSite(1))
 if WebScraper.open_website():
     print("Title:", WebScraper.get_title())
-    #print("Links:", WebScraper.get_all_links())
-    print("Text Content:", WebScraper.get_text()[:200])
+    print("Text Content:", WebScraper.get_text()[:200]) 
+    time.sleep(100)
+'''
