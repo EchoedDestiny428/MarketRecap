@@ -1,10 +1,14 @@
+from polygon import RESTClient
 from selenium import webdriver
-import requests
 from bs4 import BeautifulSoup
-import time
-import pycurl
 from io import BytesIO
+
+import requests
+
+import pycurl
 import json
+
+import time
 
 class SiteListManager:
     def __init__(self, filename="SiteLists.txt"):
@@ -99,6 +103,7 @@ SiteListManager.addSite("https://www.marketwatch.com/markets")
 SiteListManager.addSite("https://google.com")
 
 polykey = '3xCm_W1ug8HuguFEtibvELIUHZz0OlCh'
+
 
 PriceManager = PriceManager(polykey)
 if PriceManager.get_data():
